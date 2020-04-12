@@ -1,0 +1,324 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage[numbered, framed]{matlab-prettifier}
+\usepackage[font=small]{caption}
+
+
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{3pt}
+
+\title{Control Theory 4}
+\author{Kamil Kamaliev, Var b \\ k.kamaliev@innopolis.university }
+\date{April 2020}
+
+\begin{filecontents*}{stability.m}
+    A = [0 0 1 0; 0 0 0 1; 0 12.83 0 0; 0 10.78 0 0];
+    B = [0; 0; 0.24; 0.11];
+    C = [1 0 0 0; 0 1 0 0];
+    D = [0; 0];
+    sys = ss(A,B,C,D);
+    
+    H = isstable(sys);
+    H
+\end{filecontents*}
+
+\begin{filecontents*}{control.m}
+
+    A = [0 0 1 0; 0 0 0 1; 0 12.83 0 0; 0 10.78 0 0];
+    B = [0; 0; 0.24; 0.11];
+    C = [1 0 0 0; 0 1 0 0];
+    D = [0; 0];
+    Co = ctrb(A, B);
+    
+    Co
+    
+    unco = length(A) - rank(Co)
+    
+    unco
+\end{filecontents*}
+
+
+
+\begin{document}
+
+\maketitle
+
+ $$
+        \left\{ \begin{array}{ll} 
+            (M+m)x^{\prime\prime}-mlcos(\theta)\theta^{\prime\prime}+mlsin(\theta)\theta^{\prime^2} = F\\
+            -cos(\theta)x^{\prime\prime}+l\theta^{\prime\prime}-gsin(\theta) = 0
+        \end{array} \right.
+$$
+
+ 
+    \paragraph{A. Manipulator form}
+    
+    \leavevmode
+    
+    \noindent
+    We need to rewrite the system above in the following way: 
+    
+    $M(q)q^{\prime\prime}+n(q, q^\prime)=Bu$, where $u=F$ and $q=\begin{bmatrix} x\\ \theta \end{bmatrix}$
+    
+    $$
+        \begin{bmatrix}
+            M+m & -mlcos(\theta) \\
+            -cos(\theta) & l
+        \end{bmatrix}
+        \begin{bmatrix}
+            x^{\prime\prime} \\
+            \theta^{\prime\prime}
+        \end{bmatrix} +
+        \begin{bmatrix}
+            mlsin(\theta)\theta^{\prime^2} \\
+            -gsin(\theta)
+        \end{bmatrix} =
+        \begin{bmatrix}
+            1 \\ 0
+        \end{bmatrix} \cdot F
+    $$
+    
+    As we can see:
+    
+    \bigbreak
+    
+    $
+    M(q) = 
+        \begin{bmatrix}
+            M+m & -mlcos(\theta) \\
+            -cos(\theta) & l
+        \end{bmatrix}
+    $, 
+    $
+    n(q,q') = 
+        \begin{bmatrix}
+            mlsin(\theta)\theta^{\prime^2} \\
+            -gsin(\theta)
+        \end{bmatrix}
+    $,
+    $
+    B = 
+        \begin{bmatrix}
+            1 \\
+            0
+        \end{bmatrix}
+    $
+    
+   \paragraph{B. Control affine nonlinear form}
+    
+   \leavevmode
+    
+   \noindent
+   Desired form: $z' = f(z) + g(z)u$, where $u = F $, $z = \begin{bmatrix} x & \theta & x' & \theta' \end{bmatrix}^T$
+   
+   $$
+        \begin{bmatrix}
+            x^\prime \\ \theta^\prime \\ x^{\prime\prime} \\ \theta^{\prime\prime}
+        \end{bmatrix} = 
+        \begin{bmatrix}
+            x^\prime \\ \theta^\prime \\
+            a(x, \theta, x^\prime, \theta^\prime) \\
+            b(x, \theta, x^\prime, \theta^\prime)
+        \end{bmatrix} +
+        \begin{bmatrix}
+            0 \\ 0 \\
+            c(x, \theta, x^\prime, \theta^\prime) \\
+            d(x, \theta, x^\prime, \theta^\prime)
+        \end{bmatrix} \cdot F
+    $$
+    
+    \noindent
+    we can find $ a(x, \theta, x^\prime, \theta^\prime)$, $ b(x, \theta, x^\prime, \theta^\prime)$, $ c(x, \theta, x^\prime, \theta^\prime)$, $d(x, \theta, x^\prime, \theta^\prime)$ by deriving $q''$ from previous task:
+    
+    $$M(q)q^{\prime\prime}+n(q, q^\prime)=Bu$$
+    $$M(q)q^{\prime\prime} = Bu - n(q, q^\prime)$$
+    $$q^{\prime\prime} = M(q)^{-1}(Bu - n(q, q^\prime))$$
+    $$q^{\prime\prime} = -M(q)^{-1} \cdot n(q, q^\prime) + M(q)^{-1} \cdot Bu$$
+    
+    Hence, functions $a$ and $b$ are $-M(q)^{-1} \cdot n(q, q^\prime)$ and functions $c$ and $d$ are $M(q)^{-1} \cdot Bu$
+    
+    
+    $$
+        -M(q)^{-1} \cdot n(q, q^\prime) = \frac{1}{l(msin^2(\theta)+ M)}
+        \begin{bmatrix}
+            ml \sin(\theta) (gcos(\theta)-l\theta^{\prime^2}) \\
+            sin(\theta) (g(M+m)-mlcos(\theta)\theta^{\prime^2})
+        \end{bmatrix}
+    $$
+        
+    $$
+        M(q)^{-1} \cdot B = \frac{1}{l(msin^2(\theta)+ M)}
+        \begin{bmatrix}
+            l \\ cos(\theta)
+        \end{bmatrix}
+    $$
+    
+    Thus, we can see that:
+    
+    $$
+    z' = 
+    \begin{bmatrix}
+    x' \\
+    \theta' \\
+    \frac{ m \sin(\theta) (gcos(\theta)-l\theta^{\prime^2})}{(msin^2(\theta)+ M)} \\
+    \frac{sin(\theta) (g(M+m)-mlcos(\theta)\theta^{\prime^2})}{l(msin^2(\theta)+ M)}
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+    0 \\
+    0 \\
+    \frac{1}{(msin^2(\theta)+ M)} \\
+    \frac{cos(\theta)}{l(msin^2(\theta)+ M)}
+    \end{bmatrix} \cdot u
+    $$
+    
+    So, $f(z) =  \begin{bmatrix}
+    x' \\
+    \theta' \\
+    \frac{ m \sin(\theta) (gcos(\theta)-l\theta^{\prime^2})}{(msin^2(\theta)+ M)} \\
+    \frac{sin(\theta) (g(M+m)-mlcos(\theta)\theta^{\prime^2})}{l(msin^2(\theta)+ M)}
+    \end{bmatrix}$ and $g(z) = \begin{bmatrix}
+    0 \\
+    0 \\
+    \frac{1}{(msin^2(\theta)+ M)} \\
+    \frac{cos(\theta)}{l(msin^2(\theta)+ M)}
+    \end{bmatrix} $
+    
+    \paragraph{C. Linearization}
+    
+   \leavevmode
+    
+   \noindent
+   
+   Our desired form: $\delta z' = A\delta z + B\delta u$ around point 
+   $z =  \begin{bmatrix}
+    0 & 0 & 0 & 0
+    \end{bmatrix}^T
+    $
+   
+   $$
+   z' = f(z, u) =  
+    \begin{bmatrix}
+    x' \\
+    \theta' \\
+    \frac{ m \sin(\theta) (gcos(\theta)-l\theta^{\prime^2}) + u}{(msin^2(\theta)+ M)} \\
+    \frac{sin(\theta) (g(M+m)-mlcos(\theta)\theta^{\prime^2}) + ucos(\theta)}{l(msin^2(\theta)+ M)}
+    \end{bmatrix}
+   $$
+   
+   Next, we need to compute Jacobian matrix of $f(z, u)$ with respect to $z$.
+   
+   This will be our matrix $A$
+   
+   $$
+    A = \frac{\partial f(z, u)}{\partial z} = 
+    \begin{bmatrix}
+    0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 1 \\
+    0 & a_{32} & 0 & \frac{-(2 \theta' l m sin(\theta))}{(m sin^2(\theta) + M)} \\
+    0 & a_{42} & 0 & \frac{-(2 \theta' m sin(\theta) cos(\theta))}{(m sin^2(\theta) + M)}
+    \end{bmatrix}
+   $$
+   
+   $$
+   a_{32} = \frac{(m cos(\theta) (g cos(\theta) - l (\theta')^2) - g m sin^2(\theta))}{(m sin^2(\theta) + M)} - \frac{(2 m sin(\theta) cos(\theta) (m sin(\theta) (g cos(\theta) - l (\theta')^2) + u))}{(m sin^2(\theta) + M)^2}
+   $$
+   
+   \noindent
+   $
+   a_{42} = \frac{(cos(\theta) (g (m + M) - l m (\theta')^2 cos(\theta)) + l m (\theta')^2 sin^2(\theta) - u sin(\theta))}{(l (m sin^2(\theta) + M))} - \frac{(2 m sin(\theta) cos(\theta) (sin(\theta) (g (m + M) - l m (\theta')^2 cos(\theta)) + u cos(\theta)))}{(l (m sin^2(\theta) + M)^2)}
+   $
+   
+   
+   After substitution of corresponding numbers, we obtain:
+   $$
+   A = 
+   \begin{bmatrix}
+    0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 1 \\
+    0 & 12.83 & 0 & 0 \\
+    0 & 10.78 & 0 & 0
+    \end{bmatrix}
+   $$
+   
+   Then we can find matrix B:
+   
+   $$
+   B = \frac{\partial f(z, u)}{\partial u} = 
+   \begin{bmatrix}
+    0 \\
+    0 \\
+    \frac{1}{(msin^2(\theta)+ M)} \\
+    \frac{cos(\theta)}{l(msin^2(\theta)+ M)}
+    \end{bmatrix}
+   $$
+   
+   After substitution of corresponding numbers, we obtain:
+   $$
+   B = 
+   \begin{bmatrix}
+    0 \\
+    0 \\
+    0.24 \\
+    0.11
+    \end{bmatrix}
+   $$
+   
+   Finally, we obtain: 
+   $$
+   \delta z' = 
+   \begin{bmatrix}
+    0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 1 \\
+    0 & 12.83 & 0 & 0 \\
+    0 & 10.78 & 0 & 0
+    \end{bmatrix} \delta z
+    +
+    \begin{bmatrix}
+    0 \\
+    0 \\
+    0.24 \\
+    0.11
+    \end{bmatrix} \delta u
+   $$
+   
+   \paragraph{D. Stability}
+    
+   \leavevmode
+    
+   \noindent
+   The stability of the system was checked by running the following code in MatLab.
+   
+   \lstinputlisting[caption={MatLab code for checking stability}]{stability.m}
+   
+   The system turned out to be unstable.
+   
+  \newpage
+   
+   \paragraph{E. Controlability}
+    
+   \leavevmode
+    
+   \noindent
+   The controlability of the system was checked by running the following code in MatLab.
+   
+   \lstinputlisting[caption={MatLab code for checking controlability}]{control.m}
+   
+   \bigbreak
+   \noindent
+   $unco$ shows the number of uncontrollable states. In my case it's equal to 0, so the system is fully controlable.
+   
+   
+   
+   \paragraph{Tasks F-G}
+   \leavevmode
+    
+   \noindent
+   They are in separate file.
+   
+  
+    
+\end{document}
